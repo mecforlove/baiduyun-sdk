@@ -3,6 +3,7 @@
 """Python client library for the PCS API.
 """
 import os
+import threading
 
 from requests import Session
 from . import version
@@ -42,7 +43,6 @@ class YunApi(object):
         """
         yun_dir, yun_filename = os.path.split(yun_path)
         cwd = os.getcwd()
-        contents = self.get('/file', dict(method='download', path=yun_path))
         if local_path is None:
             local_dir = cwd
             local_filename = yun_filename
@@ -53,6 +53,7 @@ class YunApi(object):
             if not local_filename:
                 local_filename = yun_filename
         local_path = os.path.join(local_dir, local_filename)
+        contents = self.get('/file', dict(method='download', path=yun_path))
         with open(local_path, 'wb') as f:
             for chunk in contents:
                 if chunk:
@@ -62,6 +63,17 @@ class YunApi(object):
 
     def get(self, uri, params):
         return self.request('GET', uri, params=params)
+
+    def content_length(self, uri, params):
+        """发送head请求获取content-length
+        """
+        params.update({'app_id': APP_ID})
+        resp = self.session.head(BASE_URL + uri, params=params)
+        length = resp.headers.get('content-length')
+        if length:
+            return int(length)
+        else:
+            raise Exception('%s don\'t support Range')
 
     def request(self, method, uri, params={}, data=None, files=None,
                 stream=None):
@@ -78,7 +90,7 @@ class YunApi(object):
             stream=stream)
         # Support stream when download
         if stream:
-            return resp.iter_content(chunk_size=None)
+            return resp.iter_content(chunk_size=1024)
         return resp.json()
 
 
