@@ -60,7 +60,6 @@ class YunApi(object):
                     f.write(chunk)
         return True
 
-
     def get(self, uri, params):
         return self.request('GET', uri, params=params)
 
@@ -75,8 +74,15 @@ class YunApi(object):
         else:
             raise Exception('%s don\'t support Range')
 
-    def request(self, method, uri, params={}, data=None, files=None,
+    def request(self,
+                method,
+                uri,
+                params=None,
+                data=None,
+                files=None,
                 stream=None):
+        if params is None:
+            params = {}
         params.update({'app_id': APP_ID})
         if params.get('method') == 'download':  # Enable stream.
             stream = True
