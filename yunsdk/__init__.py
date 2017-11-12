@@ -63,17 +63,6 @@ class YunApi(object):
     def get(self, uri, params):
         return self.request('GET', uri, params=params)
 
-    def content_length(self, uri, params):
-        """发送head请求获取content-length
-        """
-        params.update({'app_id': APP_ID})
-        resp = self.session.head(BASE_URL + uri, params=params)
-        length = resp.headers.get('content-length')
-        if length:
-            return int(length)
-        else:
-            raise Exception('%s don\'t support Range')
-
     def request(self,
                 method,
                 uri,
