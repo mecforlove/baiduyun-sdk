@@ -1,6 +1,6 @@
 # coding: utf-8
 from queue import Queue
-from threading import Thread
+from threading import Thread, Lock, current_thread
 
 from requests import head, get
 
@@ -9,7 +9,7 @@ class SuperDownloader(object):
     """HTTP下载较大文件的工具
     """
 
-    def __init__(self, url, session, save_path, thread_num=10, queue_size=10):
+    def __init__(self, url, session, save_path, thread_num=10, queue_size=10, chunk=10240):
         """
 
         :param url: 资源链接
@@ -17,6 +17,7 @@ class SuperDownloader(object):
         :param save_path: 保存路径
         :param thread_num: 下载线程数
         :param queue_size: 队列的大小，默认10
+        :param chunk: 每个线程下载的块大小
         """
         self.url = url
         self.session = session
@@ -24,15 +25,38 @@ class SuperDownloader(object):
         self.thread_num = thread_num
         self.queue= Queue(queue_size)
         self.file_size = self._content_length()
+        self.position = 0  # 当前的字节偏移量
+        self.chunk = chunk
+        self.mutex = Lock()  # 资源互斥锁
+        self.flags = [False] * self.thread_num
+        self.fp = open(save_path, 'wb')
 
     def download(self):
-        pass
+        for i in range(self.thread_num):
+            Thread(target=self._produce, name='%d' % i).start()
+        Thread(target=self._consume, name='consumer').start()
 
     def _produce(self):
-        pass
+        while True:
+            if self.mutex.acquire():
+                if self.position > self.file_size - 1:
+                    self.flags[int(current_thread().getName())] = True
+                    self.mutex.release()
+                    return
+                interval = (self.position, self.position + self.chunk)
+                self.position += (self.chunk + 1)
+                self.mutex.release()
+            resp = self.session.get(self.url, headers={'Range': 'bytes=%s-%s' % interval})
+            self.queue.put((interval, resp.content))
+        self.fp.close()
 
     def _consume(self):
-        pass
+        while True:
+            if all(self.flags):
+                break
+            item = self.queue.get()
+            self.fp.seek(item[0][0])
+            self.fp.write(item[1])
 
     def _content_length(self):
         """发送head请求获取content-length
@@ -42,4 +66,4 @@ class SuperDownloader(object):
         if length:
             return int(length)
         else:
-            raise Exception('%s don\'t support Range')
+            raise Exception('%s don\'t support Range' % self.url)
