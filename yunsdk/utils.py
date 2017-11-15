@@ -47,7 +47,6 @@ class SuperDownloader(object):
             if self.mutex.acquire():
                 if self.position > self.file_size - 1:
                     self.flags[int(current_thread().getName())] = True
-                    self.mutex.release()
                     return
                 interval = (self.position, self.position + self.chunk)
                 self.position += (self.chunk + 1)
@@ -61,9 +60,10 @@ class SuperDownloader(object):
         while True:
             if all(self.flags) and self.queue.empty():
                 return
-            item = self.queue.get()
-            self.fp.seek(item[0][0])
-            self.fp.write(item[1])
+            if not self.queue.empty():
+                item = self.queue.get()
+                self.fp.seek(item[0][0])
+                self.fp.write(item[1])
 
     def _content_length(self):
         """发送head请求获取content-length
