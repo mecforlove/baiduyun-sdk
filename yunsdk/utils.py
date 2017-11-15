@@ -9,7 +9,13 @@ class SuperDownloader(object):
     """HTTP下载较大文件的工具
     """
 
-    def __init__(self, url, session, save_path, thread_num=10, queue_size=10, chunk=10240):
+    def __init__(self,
+                 url,
+                 session,
+                 save_path,
+                 thread_num=45,
+                 queue_size=10,
+                 chunk=10240):
         """
 
         :param url: 资源链接
@@ -23,7 +29,7 @@ class SuperDownloader(object):
         self.session = session
         self.save_path = save_path
         self.thread_num = thread_num
-        self.queue= Queue(queue_size)
+        self.queue = Queue(queue_size)
         self.file_size = self._content_length()
         self.position = 0  # 当前的字节偏移量
         self.chunk = chunk
@@ -46,14 +52,15 @@ class SuperDownloader(object):
                 interval = (self.position, self.position + self.chunk)
                 self.position += (self.chunk + 1)
                 self.mutex.release()
-            resp = self.session.get(self.url, headers={'Range': 'bytes=%s-%s' % interval})
+            resp = self.session.get(
+                self.url, headers={'Range': 'bytes=%s-%s' % interval})
             self.queue.put((interval, resp.content))
         self.fp.close()
 
     def _consume(self):
         while True:
-            if all(self.flags):
-                break
+            if all(self.flags) and self.queue.empty():
+                return
             item = self.queue.get()
             self.fp.seek(item[0][0])
             self.fp.write(item[1])
