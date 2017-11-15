@@ -1,6 +1,6 @@
 # coding: utf-8
 from queue import Queue
-from threading import Thread, Lock, current_thread
+from threading import Thread, Lock, current_thread, active_count
 
 from requests import head, get
 
@@ -47,23 +47,24 @@ class SuperDownloader(object):
             if self.mutex.acquire():
                 if self.position > self.file_size - 1:
                     self.flags[int(current_thread().getName())] = True
-                    return
+                    self.mutex.release()
+                    break
                 interval = (self.position, self.position + self.chunk)
                 self.position += (self.chunk + 1)
                 self.mutex.release()
             resp = self.session.get(
                 self.url, headers={'Range': 'bytes=%s-%s' % interval})
             self.queue.put((interval, resp.content))
-        self.fp.close()
 
     def _consume(self):
         while True:
-            if all(self.flags) and self.queue.empty():
-                return
+            if active_count() == 2:
+                break
             if not self.queue.empty():
                 item = self.queue.get()
                 self.fp.seek(item[0][0])
                 self.fp.write(item[1])
+        self.fp.close()
 
     def _content_length(self):
         """发送head请求获取content-length
