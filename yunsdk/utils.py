@@ -15,7 +15,7 @@ class SuperDownloader(object):
                  save_path,
                  thread_num=45,
                  queue_size=10,
-                 chunk=10240):
+                 chunk=102400):
         """
 
         :param url: 资源链接
@@ -38,9 +38,17 @@ class SuperDownloader(object):
         self.fp = open(save_path, 'wb')
 
     def download(self):
+        theads = []
         for i in range(self.thread_num):
-            Thread(target=self._produce, name='%d' % i).start()
-        Thread(target=self._consume, name='consumer').start()
+            p = Thread(target=self._produce, name='%d' % i)
+            theads.append(p)
+            p.start()
+        c = Thread(target=self._consume, name='consumer')
+        theads.append(c)
+        c.start()
+        for t in theads:
+            t.join()
+        self.fp.close()
 
     def _produce(self):
         while True:
@@ -48,23 +56,23 @@ class SuperDownloader(object):
                 if self.position > self.file_size - 1:
                     self.flags[int(current_thread().getName())] = True
                     self.mutex.release()
-                    break
+                    return
                 interval = (self.position, self.position + self.chunk)
                 self.position += (self.chunk + 1)
                 self.mutex.release()
             resp = self.session.get(
                 self.url, headers={'Range': 'bytes=%s-%s' % interval})
-            self.queue.put((interval, resp.content))
+            if not self.queue.full():
+                self.queue.put((interval, resp.content))
 
     def _consume(self):
         while True:
-            if active_count() == 2:
-                break
+            if all(self.flags) and self.queue.empty():
+                return
             if not self.queue.empty():
                 item = self.queue.get()
                 self.fp.seek(item[0][0])
                 self.fp.write(item[1])
-        self.fp.close()
 
     def _content_length(self):
         """发送head请求获取content-length
