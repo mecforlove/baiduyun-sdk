@@ -1,6 +1,6 @@
 # coding: utf-8
 from queue import Queue
-from threading import Thread, Lock, current_thread, active_count
+from threading import Thread, Lock, current_thread
 
 from requests import head, get
 
@@ -35,20 +35,19 @@ class SuperDownloader(object):
         self.chunk = chunk
         self.mutex = Lock()  # 资源互斥锁
         self.flags = [False] * self.thread_num
-        self.fp = open(save_path, 'wb')
 
     def download(self):
-        theads = []
-        for i in range(self.thread_num):
-            p = Thread(target=self._produce, name='%d' % i)
-            theads.append(p)
-            p.start()
-        c = Thread(target=self._consume, name='consumer')
-        theads.append(c)
-        c.start()
-        for t in theads:
-            t.join()
-        self.fp.close()
+        with open(self.save_path, 'wb') as fp:
+            theads = []
+            for i in range(self.thread_num):
+                p = Thread(target=self._produce, name='%d' % i)
+                theads.append(p)
+                p.start()
+            c = Thread(target=self._consume, args=(fp, ), name='consumer')
+            theads.append(c)
+            c.start()
+            for t in theads:
+                t.join()
 
     def _produce(self):
         while True:
@@ -65,14 +64,14 @@ class SuperDownloader(object):
             if not self.queue.full():
                 self.queue.put((interval, resp.content))
 
-    def _consume(self):
+    def _consume(self, fp):
         while True:
             if all(self.flags) and self.queue.empty():
                 return
             if not self.queue.empty():
                 item = self.queue.get()
-                self.fp.seek(item[0][0])
-                self.fp.write(item[1])
+                fp.seek(item[0][0])
+                fp.write(item[1])
 
     def _content_length(self):
         """发送head请求获取content-length
