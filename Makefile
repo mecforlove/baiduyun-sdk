@@ -5,3 +5,6 @@ clean-pyc:
 
 format:
 	yapf -irp yunsdk
+
+test:
+	python -m unittest tests

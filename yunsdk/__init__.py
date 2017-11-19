@@ -60,12 +60,28 @@ class YunApi(object):
                     f.write(chunk)
         return True
 
+    def upload(self, local_path, yun_path, ondup=True):
+        """上传文件
+
+        :param local_path: 本地文件路径
+        :param yun_path: 云端文件路径
+        :param ondup: 是否覆盖同名文件，默认覆盖
+        """
+        if ondup:
+            ondup = 'overwrite'
+        else:
+            ondup = 'newcopy'
+        params = {'method': 'upload', 'path': yun_path, 'ondup': ondup}
+        files = {yun_path: open(local_path, 'rb')}
+        return self.request('POST', '/file', params=params, files=files)
+
     def get(self, uri, params):
         return self.request('GET', uri, params=params)
 
     def request(self,
                 method,
                 uri,
+                headers=None,
                 params=None,
                 data=None,
                 files=None,
@@ -78,6 +94,7 @@ class YunApi(object):
         resp = self.session.request(
             method,
             BASE_URL + uri,
+            headers=headers,
             params=params,
             data=data,
             files=files,
