@@ -1,1 +1,1 @@
-from test_api import TestQuota, TestUpload
+from test_api import *
