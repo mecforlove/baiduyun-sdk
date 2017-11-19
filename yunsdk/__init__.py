@@ -75,6 +75,22 @@ class YunApi(object):
         files = {yun_path: open(local_path, 'rb')}
         return self.request('POST', '/file', params=params, files=files)
 
+    def mkdir(self, yun_path):
+        """创建目录
+
+        :param yun_path: 云端文件夹路径
+        """
+        params = {'method': 'mkdir', 'path': yun_path}
+        return self.request('POST', '/file', params=params)
+
+    def delete(self, yun_path):
+        """删除文件或者目录
+
+        :param yun_path: 云端文件路径
+        """
+        params = {'method': 'delete', 'path': yun_path}
+        return self.request('POST', '/file', params=params)
+
     def get(self, uri, params):
         return self.request('GET', uri, params=params)
 

@@ -32,3 +32,21 @@ class TestUpload(YunApiTestCase):
         ret = self.client.upload(local_path, yun_path)
         self.assertEqual(ret['path'], yun_path)
         self.assertEqual(ret['size'], 5)
+        self.assertEqual(ret['isdir'], 0)
+
+
+class TestDelete(YunApiTestCase):
+    def test_delete_file(self):
+        yun_path = '/test.txt'
+        ret = self.client.delete(yun_path)
+        self.assertIn('request_id', ret)
+
+
+class TestMkdir(YunApiTestCase):
+    def test_mkdir(self):
+        yun_path = '/test'
+        self.client.delete(yun_path)
+        ret = self.client.mkdir(yun_path)
+        self.assertEqual(ret['path'], yun_path)
+        self.assertEqual(ret['isdir'], 1)
+        self.client.delete(yun_path)
