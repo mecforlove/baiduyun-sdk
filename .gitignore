@@ -31,3 +31,4 @@ venv/
 .vscode
 .idea
 .DS_Store
+tests/.BDUSS
