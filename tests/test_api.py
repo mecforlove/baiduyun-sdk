@@ -1,7 +1,12 @@
 # coding: utf-8
+import os
 import unittest
 
 import yunsdk
+
+LOCAL_PATH = os.path.dirname(os.path.abspath(__file__)) + '/test.txt'
+YUN_PATH = '/test.txt'
+YUN_DIR_PATH = '/test'
 
 
 class YunApiTestCase(unittest.TestCase):
@@ -37,16 +42,24 @@ class TestUpload(YunApiTestCase):
 
 class TestDelete(YunApiTestCase):
     def test_delete_file(self):
-        yun_path = '/test.txt'
-        ret = self.client.delete(yun_path)
+        self.client.upload(LOCAL_PATH, YUN_PATH)
+        ret = self.client.delete(YUN_PATH)
         self.assertIn('request_id', ret)
 
 
 class TestMkdir(YunApiTestCase):
     def test_mkdir(self):
-        yun_path = '/test'
-        self.client.delete(yun_path)
-        ret = self.client.mkdir(yun_path)
-        self.assertEqual(ret['path'], yun_path)
+        self.client.delete(YUN_DIR_PATH)
+        ret = self.client.mkdir(YUN_DIR_PATH)
+        self.assertEqual(ret['path'], YUN_DIR_PATH)
         self.assertEqual(ret['isdir'], 1)
-        self.client.delete(yun_path)
+        self.client.delete(YUN_DIR_PATH)
+
+
+class TestDownload(YunApiTestCase):
+    def test_download(self):
+        self.client.upload(LOCAL_PATH, YUN_PATH)
+        os.remove(LOCAL_PATH)
+        ret = self.client.download(YUN_PATH, LOCAL_PATH)
+        self.assertTrue(ret)
+        

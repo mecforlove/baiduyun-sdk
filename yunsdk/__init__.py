@@ -4,9 +4,12 @@
 """
 import os
 import threading
+import urllib
 
 from requests import Session
+
 from . import version
+from utils import SuperDownloader
 
 __version__ = version.__version__
 APP_ID = 266719  # The app_id of ES file explore on android.
@@ -53,11 +56,15 @@ class YunApi(object):
             if not local_filename:
                 local_filename = yun_filename
         local_path = os.path.join(local_dir, local_filename)
-        contents = self.get('/file', dict(method='download', path=yun_path))
-        with open(local_path, 'wb') as f:
-            for chunk in contents:
-                if chunk:
-                    f.write(chunk)
+        params = {
+            'method': 'download',
+            'app_id': APP_ID,
+            'path': yun_path
+        }
+        query_string = urllib.urlencode(params)
+        url = BASE_URL + '/file?%s' % query_string
+        super_downloader = SuperDownloader(url, self.session, local_path)
+        super_downloader.download()
         return True
 
     def upload(self, local_path, yun_path, ondup=True):
@@ -105,8 +112,6 @@ class YunApi(object):
         if params is None:
             params = {}
         params.update({'app_id': APP_ID})
-        if params.get('method') == 'download':  # Enable stream.
-            stream = True
         resp = self.session.request(
             method,
             BASE_URL + uri,
@@ -116,9 +121,6 @@ class YunApi(object):
             files=files,
             timeout=self.timeout,
             stream=stream)
-        # Support stream when download
-        if stream:
-            return resp.iter_content(chunk_size=1024)
         return resp.json()
 
 
