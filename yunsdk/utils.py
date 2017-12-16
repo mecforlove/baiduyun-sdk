@@ -1,5 +1,5 @@
 # coding: utf-8
-from queue import Queue
+from Queue import Queue
 from threading import Thread, Lock, current_thread
 
 from requests import head, get
