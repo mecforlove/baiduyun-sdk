@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # coding: utf-8
 """Python client library for the PCS API.
 """
@@ -9,7 +9,7 @@ import urllib
 from requests import Session
 
 from . import version
-from utils import SuperDownloader
+from .utils import SuperDownloader
 
 __version__ = version.__version__
 APP_ID = 266719  # The app_id of ES file explore on android.
