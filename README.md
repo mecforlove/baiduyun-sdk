@@ -28,3 +28,19 @@ SDK不包含用户登录认证的部分，所以在开始使用之前，必须�
 - 移动
 - 复制
 - 离线
+
+---------------------------------------------------------------------
+or:
+    下载
+    $./baiduyun.py download /remote/path/file  /local/path/file
+
+    上传
+    $./baiduyun.py upload /local/path/file  /remote/path/file
+
+    删除
+    $./baiduyun.py delete /remote/path/file
+
+文件大小不能超过600M,上传或者下载前请先确定文件大小，或者分割文件后再操作
+   split -b 590M file-name the-suffix-you-want
+eg. split -b 590M video.mp4 video.
+    cat video.a* > new.video.mp4 合并成新的文件 
