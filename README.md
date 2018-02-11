@@ -2,6 +2,7 @@
 
 This client library is designed to support the [BaiduYun PCS API](http://developer.baidu.com/wiki/index.php?title=docs/pcs), which is a way to manage your cloud files with Python.
 
+> login登录来自[SpiderClub](https://github.com/SpiderClub/smart_login/tree/master/baidu/login_direct.py)
 
 首先，导入模块，获取bduss,创建网盘操纵的实例：
 ```python
