@@ -1,5 +1,9 @@
 # coding: utf-8
-from Queue import Queue
+import sys
+try:
+    from Queue import Queue
+except:
+    from queue import Queue
 from threading import Thread, Lock, current_thread
 
 from requests import head, get

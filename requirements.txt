@@ -1,1 +1,5 @@
 requests==2.18.4
+PyExecJs
+rsa
+texttable
+pyv8
