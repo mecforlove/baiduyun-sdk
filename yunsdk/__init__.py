@@ -1,4 +1,3 @@
-#!/usr/bin/env python2
 # coding: utf-8
 """Python client library for the PCS API.
 """
@@ -11,13 +10,8 @@ import json
 
 from requests import Session
 
-from .datatable import Table
 from . import version
 from .utils import SuperDownloader
-from .login import GetBduss
-
-reload(sys)
-sys.setdefaultencoding('utf-8')
 
 __version__ = version.__version__
 APP_ID = 266719  # The app_id of ES file explore on android.
@@ -64,11 +58,7 @@ class YunApi(object):
             if not local_filename:
                 local_filename = yun_filename
         local_path = os.path.join(local_dir, local_filename)
-        params = {
-            'method': 'download',
-            'app_id': APP_ID,
-            'path': yun_path
-        }
+        params = {'method': 'download', 'app_id': APP_ID, 'path': yun_path}
         if sys.version_info.major == 3:
             query_string = urllib.parse.urlencode(params)
         else:
@@ -109,21 +99,10 @@ class YunApi(object):
         """
         params = {'method': 'delete', 'path': yun_path}
         return self.request('POST', '/file', params=params)
+
     def list(self, yun_path, by='name'):
-        params = {'method': 'list', 'path': yun_path, 'by': by}
-        response = self.request('GET', '/file', params=params)
-        filelist = response[u'list']
-        dirlist=[]
-        doclist=[]
-        for i in filelist:
-            if i[u'isdir'] == 0:
-                doclist.append(["文件名:",i[u'server_filename'],"大小:",str(i[u'size'])])
-            else:
-                doclist.append(["文件夹:",i[u'server_filename'],"大小:",str(i[u'size'])]) 
-        if sys.version_info.major == 3:
-            print(Table(4,dirlist + doclist))
-        else:
-            print Table(4,dirlist + doclist)
+        pass
+
     def get(self, uri, params):
         return self.request('GET', uri, params=params)
 

@@ -32,7 +32,7 @@ class TestUpload(YunApiTestCase):
         local_path = tempfile.mkstemp()[1]
         yun_path = '/test.txt'
         with open(local_path, 'wb') as tmp_fp:
-            file_content = 'hello'
+            file_content = b'hello'
             tmp_fp.write(file_content)
         ret = self.client.upload(local_path, yun_path)
         self.assertEqual(ret['path'], yun_path)

@@ -27,6 +27,7 @@ nosetests.xml
 
 # Virtualenvs
 venv/
+env/
 
 .vscode
 .idea
